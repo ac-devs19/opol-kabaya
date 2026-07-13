@@ -1,0 +1,56 @@
+import React, { useRef } from "react";
+import { Platform, Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
+
+type OtpInputProps = {
+  value: string;
+  onChange: (value: string) => void;
+  length?: number;
+};
+
+export default function OtpInput({
+  value,
+  onChange,
+  length = 6,
+}: OtpInputProps) {
+  const inputRef = useRef<TextInput>(null);
+
+  const handleChange = (text: string) => {
+    const formatted = text.replace(/[^0-9]/g, "").slice(0, length);
+    onChange(formatted);
+  };
+
+  return (
+    <Pressable onPress={() => inputRef.current?.focus()}>
+      <TextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={handleChange}
+        keyboardType={Platform.OS === "ios" ? "default" : "number-pad"}
+        maxLength={length}
+        className="absolute opacity-0 w-0 h-0"
+        autoFocus
+      />
+      <View className="flex-row justify-between gap-3">
+        {Array.from({ length }).map((_, index) => {
+          const digit = value[index];
+          const isFocused = index === value.length;
+          return (
+            <View
+              key={index}
+              className={cn(
+                "bg-secondary/50 flex-1 h-14 items-center justify-center rounded-2xl border",
+                isFocused ? "border-primary" : "border-border",
+              )}
+            >
+              <Text className="text-xl font-quicksand-semibold">
+                {digit ?? ""}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </Pressable>
+  );
+}
