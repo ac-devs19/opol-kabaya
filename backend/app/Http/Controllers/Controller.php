@@ -10,7 +10,7 @@ use Request;
 
 abstract class Controller
 {
-    public function otp($user)
+    public function otp($user_id)
     {
         do {
             $otp = random_int(100000, 999999);
@@ -21,7 +21,7 @@ abstract class Controller
         );
 
         OtpVerification::create([
-            'user_id' => $user->id,
+            'user_id' => $user_id,
             'otp' => $otp,
             'expired_at' => Carbon::now()->addMinutes(3),
         ]);
@@ -30,20 +30,20 @@ abstract class Controller
     public function verify($data)
     {
         $record = OtpVerification::whereHas('user', function ($query) use ($data) {
-            $query->where('mobile_number', $data['mobile_number']);
+            $query->where('email', $data['email']);
         })
             ->latest()
             ->first();
 
         if ($record->expired_at->isPast()) {
             throw ValidationException::withMessages([
-                'message' => 'Your OTP has expired. Please request a new one.'
+                'otp' => 'Your OTP has expired. Please request a new one.'
             ]);
         }
 
         if ($record->otp !== $data['otp']) {
             throw ValidationException::withMessages([
-                'message' => 'The OTP you entered is invalid. Please try again.'
+                'otp' => 'The OTP you entered is invalid. Please try again.'
             ]);
         }
 

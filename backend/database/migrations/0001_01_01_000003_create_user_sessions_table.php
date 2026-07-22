@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('device_id');
-            $table->boolean('required_password');
+            $table->boolean('required_password')->default(false);
             $table->boolean('is_biometric')->default(false);
             $table->timestamps();
         });

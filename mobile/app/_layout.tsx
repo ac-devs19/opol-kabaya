@@ -11,6 +11,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useThemeStore } from "@/services/theme-storage";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuth } from "@/contexts/auth-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,10 +24,12 @@ export default function RootLayout() {
   });
   const { loadTheme } = useThemeStore();
   const { activeScheme } = useAppTheme();
+  const initialize = useAuth((state) => state.initialize);
 
   React.useEffect(() => {
     loadTheme();
-  }, [loadTheme]);
+    initialize();
+  }, []);
 
   React.useEffect(() => {
     if (loaded || error) {

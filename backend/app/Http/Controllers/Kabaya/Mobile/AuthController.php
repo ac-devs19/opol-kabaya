@@ -12,128 +12,112 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function getResident(Request $request)
     {
-        $user = $request->user();
+        $search = $request->input('search');
 
-        if (!$request->boolean('useBiometric')) {
-            $data = $request->validate([
-                'password' => ['required', 'string'],
-            ]);
+        $residents = User::select(
+            'id',
+            'first_name',
+            'suffix',
+            'middle_name',
+            'last_name',
+        )
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('middle_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('suffix', 'like', "%{$search}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CONCAT(first_name, ' ', middle_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CONCAT(first_name, ' ', middle_name, ' ', last_name, ' ', suffix) LIKE ?", ["%{$search}%"]);
+                });
+            })
+            ->where('role', 'user')
+            ->paginate(20);
 
-            if (!Hash::check($data['password'], $user->password)) {
-                throw ValidationException::withMessages([
-                    'message' => 'The provided credentials are incorrect.'
-                ]);
-            }
-        }
-
-        UserSession::where('user_id', $user->id)
-            ->update([
-                'required_password' => false,
-            ]);
-    }
-
-    public function signIn(Request $request)
-    {
-        $data = $request->validate([
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-            'password' => ['required', 'string'],
-        ]);
-
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
-
-        if (!$user || $user->mobile_verified_at === null || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'message' => 'The provided credentials are incorrect.'
-            ]);
-        }
-
-        $existingSession = UserSession::where('user_id', $user->id)->first();
-
-        if ($existingSession && $existingSession->device_id !== $request->input('device_id')) {
-            throw ValidationException::withMessages([
-                'message' => 'This account is already logged in on another device.'
-            ]);
-        }
-
-        UserSession::updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'device_id' => $request->input('device_id'),
-                'required_password' => false,
-            ]
-        );
-
-        return response()->json([
-            'token' => $user->createToken($request->input('device_name'), ['*'], now()->addWeek())->plainTextToken
-        ]);
-    }
-
-    public function forgotPassword(Request $request)
-    {
-        $data = $request->validate([
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-        ]);
-
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
-
-        if (!$user || $user->mobile_verified_at === null) {
-            throw ValidationException::withMessages([
-                'message' => 'The mobile number is invalid.'
-            ]);
-        }
-
-        $this->otp($user);
-
-        return response()->json([
-            'mobile_number' => $user->mobile_number
-        ]);
-    }
-
-    public function resetPassword(Request $request)
-    {
-        $data = $request->validate([
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-            'password' => ['required', Password::default()],
-        ]);
-
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
-
-        $user->update([
-            'password' => Hash::make($data['password']),
-        ]);
+        return response()->json($residents);
     }
 
     public function signUp(Request $request)
     {
+        $user = User::findOrFail($request->id);
+
         $data = $request->validate([
             'first_name' => ['required', 'string'],
-            'middle_name' => ['nullable', 'string'],
             'last_name' => ['required', 'string'],
-            'suffix' => ['nullable', 'string'],
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-            'email' => ['nullable', 'email'],
-            'password' => ['required', Password::defaults()],
+            'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
+        $existingUser = User::where('email', $data['email'])
+            ->where('id', '!=', $user->id)
+            ->whereNotNull('email_verified_at')
+            ->first();
 
-        if ($user && $user->mobile_verified_at !== null) {
+        if ($existingUser) {
             throw ValidationException::withMessages([
-                'message' => 'Mobile number already verified and registered.'
+                'email' => 'The email has already been taken.',
             ]);
         }
 
-        if (!empty($data['email'])) {
-            $userEmail = User::where('email', $data['email'])->first();
+        $user->update($data);
 
-            if ($userEmail && $userEmail->email_verified_at !== null) {
-                throw ValidationException::withMessages([
-                    'message' => 'Email address already verified and registered.'
+        $this->otp($user->id);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'digits:6'],
+            'isRegister' => ['required', 'boolean'],
+            'isForgot' => ['required', 'boolean'],
+            'id' => ['nullable', 'integer', 'exists:users,id'],
+            'device_id' => ['nullable', 'string'],
+            'token_name' => ['nullable', 'string'],
+        ]);
+
+        $this->verify($data);
+
+        if (!$data['isForgot']) {
+            if ($data['isRegister']) {
+                $user = User::findOrFail($data['id']);
+
+                $user->update([
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                $user = User::where('email', $data['email'])->firstOrFail();
+
+                UserSession::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'device_id' => $data['device_id'],
+                    ],
+                    [
+                        'required_password' => true,
+                    ]
+                );
+
+                return response()->json([
+                    'token' => $user->createToken(
+                        $data['token_name'],
+                        ['*'],
+                        now()->addWeek()
+                    )->plainTextToken,
                 ]);
             }
         }
+    }
+
+    public function createPin(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+
+        $data = $request->validate([
+            'password' => ['required', 'digits:4'],
+        ]);
 
         do {
             $year = now()->year;
@@ -147,76 +131,47 @@ class AuthController extends Controller
                 ->exists()
         );
 
-        if ($user && $user->mobile_verified_at === null) {
-            $user->update([
-                'first_name' => $data['first_name'],
-                'middle_name' => $data['middle_name'],
-                'last_name' => $data['last_name'],
-                'suffix' => $data['suffix'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
-        }
+        $user->update([
+            'id_number' => $id_number,
+            'password' => Hash::make($data['password']),
+        ]);
 
-        if (!$user) {
-            $user = User::create([
-                'id_number' => $id_number,
-                'first_name' => $data['first_name'],
-                'middle_name' => $data['middle_name'],
-                'last_name' => $data['last_name'],
-                'suffix' => $data['suffix'],
-                'mobile_number' => $data['mobile_number'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
-        }
-
-        $this->otp($user);
+        UserSession::create([
+            'user_id' => $user->id,
+            'device_id' => $request->input('device_id'),
+        ]);
 
         return response()->json([
-            'mobile_number' => $user->mobile_number
+            'token' => $user->createToken($request->input('token_name'), ['*'], now()->addWeek())->plainTextToken
         ]);
     }
 
-    public function verifyOtp(Request $request)
+    public function lock(Request $request)
     {
+        UserSession::where('device_id', $request->input('device_id'))
+            ->update([
+                'required_password' => true,
+            ]);
+    }
+
+    public function login(Request $request)
+    {
+        $user = $request->user();
+
         $data = $request->validate([
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-            'otp' => ['required', 'digits:6', 'numeric'],
+            'password' => ['required', 'string'],
         ]);
 
-        $this->verify($data);
-
-        if (!$request->boolean('is_forgot')) {
-            $user = User::where('mobile_number', $data['mobile_number'])->first();
-
-            $user->update([
-                'mobile_verified_at' => now(),
-            ]);
-
-            UserSession::create(
-                [
-                    'user_id' => $user->id,
-                    'device_id' => $request->input('device_id'),
-                    'required_password' => false,
-                ]
-            );
-
-            return response()->json([
-                'token' => $user->createToken($request->input('device_name'))->plainTextToken
+        if (!Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'message' => 'The provided credentials are incorrect.'
             ]);
         }
-    }
 
-    public function resendOtp(Request $request)
-    {
-        $data = $request->validate([
-            'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^9\d{9}$/'],
-        ]);
-
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
-
-        $this->otp($user);
+        UserSession::where('user_id', $user->id)
+            ->update([
+                'required_password' => false,
+            ]);
     }
 
     public function logout(Request $request)
@@ -230,40 +185,55 @@ class AuthController extends Controller
             ->delete();
     }
 
-    public function lock(Request $request)
+    public function signIn(Request $request)
     {
-        UserSession::where('device_id', $request->input('device_id'))
-            ->update([
-                'required_password' => true,
-            ]);
-    }
+        $field = $request->filled('email') ? 'email' : 'id_number';
 
-    public function biometrics(Request $request)
-    {
-        $session = UserSession::where('device_id', $request->input('device_id'))->first();
-
-        $session->update([
-            'is_biometric' => $request->is_biometric,
-        ]);
-    }
-
-    public function changePassword(Request $request)
-    {
-        $user = $request->user();
-
-        $validated = $request->validate([
-            'current_password' => ['required'],
-            'password' => ['required', Password::default()],
+        $request->validate([
+            $field => ['required'],
         ]);
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        $user = User::where($field, $request->$field)->first();
+
+        if (
+            !$user ||
+            ($field === 'email' && is_null($user->email_verified_at))
+        ) {
             throw ValidationException::withMessages([
-                'current_password' => ['The current password is incorrect.'],
+                $field => 'The' . ' ' . $field . ' ' . 'is incorrect.',
             ]);
         }
 
-        $user->update([
-            'password' => Hash::make($validated['password']),
+        $this->otp($user->id);
+
+        return response()->json([
+            'email' => $user->email,
         ]);
+    }
+
+    public function forgotPin(Request $request)
+    {
+        $user = $request->user();
+
+        $this->otp($user->id);
+    }
+
+    public function resetPin(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($data['password']),
+        ]);
+
+        UserSession::where('user_id', $user->id)
+            ->where('device_id', $request->input('device_id'))
+            ->update([
+                'required_password' => false,
+            ]);
     }
 }

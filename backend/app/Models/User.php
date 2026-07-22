@@ -28,8 +28,10 @@ class User extends Authenticatable
         'last_name',
         'suffix',
         'user_name',
-        'gender',
+        'sex',
+        'marital_status',
         'birth_date',
+        'religion',
         'profile_picture',
         'mobile_number',
         'mobile_verified_at',
@@ -42,6 +44,7 @@ class User extends Authenticatable
         'postal_code',
         'user_verified_at',
         'role',
+        'is_resident',
         'password',
     ];
 
@@ -78,8 +81,38 @@ class User extends Authenticatable
         return $this->hasMany(OtpVerification::class, 'user_id');
     }
 
-    public function requirement()
+    public function setFirstNameAttribute($value)
     {
-        return $this->hasMany(Requirement::class, 'user_id');
+        $this->attributes['first_name'] = strtoupper($value);
+    }
+
+    public function setMiddleNameAttribute($value)
+    {
+        $this->attributes['middle_name'] = $value ? strtoupper($value) : null;
+    }
+
+    public function setLastNameAttribute($value)
+    {
+        $this->attributes['last_name'] = strtoupper($value);
+    }
+
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['email'] = strtolower($value);
+    }
+
+    public function getFirstNameAttribute($value)
+    {
+        return ucwords(strtolower($value));
+    }
+
+    public function getMiddleNameAttribute($value)
+    {
+        return $value ? ucwords(strtolower($value)) : null;
+    }
+
+    public function getLastNameAttribute($value)
+    {
+        return ucwords(strtolower($value));
     }
 }

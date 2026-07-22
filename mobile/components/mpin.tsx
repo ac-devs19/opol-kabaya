@@ -3,18 +3,18 @@ import { Platform, Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-type OtpInputProps = {
+type MPinProps = {
   value: string;
   onChange: (value: string) => void;
   length?: number;
 };
 
-export default function OtpInput({
+export default function MPin({
   value,
   onChange,
-  length = 6,
+  length = 4,
   ...props
-}: OtpInputProps) {
+}: MPinProps) {
   const inputRef = useRef<TextInput>(null);
 
   const handleChange = (text: string) => {
@@ -47,7 +47,7 @@ export default function OtpInput({
               )}
             >
               <Text className="text-xl font-quicksand-semibold">
-                {digit ?? ""}
+                {digit ? "•" : ""}
               </Text>
             </View>
           );

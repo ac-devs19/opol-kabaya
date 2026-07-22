@@ -10,20 +10,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     return $request->user()->load('user_session');
   });
 
-  Route::post('/kabaya/mobile/login', [AuthController::class, 'login']);
-  Route::get('/kabaya/mobile/logout', [AuthController::class, 'logout']);
   Route::post('/kabaya/mobile/lock', [AuthController::class, 'lock']);
-  Route::post('/kabaya/mobile/biometrics', [AuthController::class, 'biometrics']);
-  Route::post('/kabaya/mobile/change-password', [AuthController::class, 'changePassword']);
+  Route::post('/kabaya/mobile/login', [AuthController::class, 'login']);
+  Route::post('/kabaya/mobile/logout', [AuthController::class, 'logout']);
 
-  Route::get('/kabaya/mobile/link-systems', [AppController::class, 'getLinkSystem']);
+  Route::post('/kabaya/mobile/forgot-pin', [AuthController::class, 'forgotPin']);
+  Route::post('/kabaya/mobile/reset-pin', [AuthController::class, 'resetPin']);
 });
 
 Route::middleware(['guest'])->group(function () {
-  Route::post('/kabaya/mobile/sign-in', [AuthController::class, 'signIn']);
-  Route::post('/kabaya/mobile/forgot-password', [AuthController::class, 'forgotPassword']);
-  Route::post('/kabaya/mobile/reset-password', [AuthController::class, 'resetPassword']);
+  Route::get('/kabaya/mobile/get-residents', [AuthController::class, 'getResident']);
+
   Route::post('/kabaya/mobile/sign-up', [AuthController::class, 'signUp']);
   Route::post('/kabaya/mobile/verify-otp', [AuthController::class, 'verifyOtp']);
-  Route::post('/kabaya/mobile/resend-otp', [AuthController::class, 'resendOtp']);
+  Route::post('/kabaya/mobile/create-pin', [AuthController::class, 'createPin']);
+
+  Route::post('/kabaya/mobile/sign-in', [AuthController::class, 'signIn']);
 });

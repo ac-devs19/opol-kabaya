@@ -10,9 +10,13 @@ import { Text } from "@/components/ui/text";
 import Button from "@/components/button";
 import { useState } from "react";
 import { router } from "expo-router";
+import axios from "@/api/axios";
+import { useStore } from "@/hooks/useStore";
+import { useMutation } from "@tanstack/react-query";
 
 export default function SignIn() {
   const [isEmail, setIsEmail] = useState(false);
+  const { setEmail, setIsRegister } = useStore();
 
   const formSchema = z
     .object({
@@ -36,11 +40,14 @@ export default function SignIn() {
       }
     });
 
+  type FormSchema = z.infer<typeof formSchema>;
+
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm<z.infer<typeof formSchema>>({
+  } = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -48,7 +55,31 @@ export default function SignIn() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {};
+  const handleSignIn = useMutation({
+    mutationFn: async (data: FormSchema) => {
+      setIsRegister(false);
+      const response = await axios.post("/sign-in", data);
+      setEmail(response.data.email);
+      router.push("/otp-verification");
+    },
+    onError: (error: any) => {
+      const errors = error.response.data.errors;
+      if (errors) {
+        Object.keys(errors).forEach((field) => {
+          setError(field as keyof FormSchema, {
+            type: "server",
+            message: errors[field][0],
+          });
+        });
+      }
+    },
+  });
+
+  const onSubmit = async (data: FormSchema) => {
+    handleSignIn.mutate(data);
+  };
+
+  const processing = handleSignIn.isPending;
 
   return (
     <KeyboardAwareScrollView
@@ -118,7 +149,12 @@ export default function SignIn() {
           </View>
         </View>
         <View className="gap-6">
-          <Button onPress={handleSubmit(onSubmit)} label="Login" />
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            label="Login"
+            loading={processing}
+            disabled={processing}
+          />
           <View className="flex-row gap-3 items-center">
             <View className="flex-1 border-b border-muted" />
             <Text className="font-quicksand-regular">or</Text>
@@ -129,7 +165,7 @@ export default function SignIn() {
               Not registered yet?
             </Text>
             <Button
-              onPress={() => router.push("/sign-up")}
+              onPress={() => router.replace("/sign-up")}
               variant="outline"
               label="Register your account"
             />
