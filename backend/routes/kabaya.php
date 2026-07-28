@@ -1,7 +1,10 @@
 <?php
 
-use App\Http\Controllers\Kabaya\Mobile\AppController;
-use App\Http\Controllers\Kabaya\Mobile\AuthController;
+use App\Http\Controllers\Kabaya\Mobile\App\VerificationController;
+use App\Http\Controllers\Kabaya\Mobile\Auth\ForgotController;
+use App\Http\Controllers\Kabaya\Mobile\Auth\LoginController;
+use App\Http\Controllers\Kabaya\Mobile\Auth\SignInController;
+use App\Http\Controllers\Kabaya\Mobile\Auth\SignUpController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,20 +13,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     return $request->user()->load('user_session');
   });
 
-  Route::post('/kabaya/mobile/lock', [AuthController::class, 'lock']);
-  Route::post('/kabaya/mobile/login', [AuthController::class, 'login']);
-  Route::post('/kabaya/mobile/logout', [AuthController::class, 'logout']);
+  Route::post('/kabaya/mobile/login', [LoginController::class, 'login']);
+  Route::post('/kabaya/mobile/lock', [LoginController::class, 'lock']);
+  Route::post('/kabaya/mobile/logout', [LoginController::class, 'logout']);
 
-  Route::post('/kabaya/mobile/forgot-pin', [AuthController::class, 'forgotPin']);
-  Route::post('/kabaya/mobile/reset-pin', [AuthController::class, 'resetPin']);
+  Route::post('/kabaya/mobile/forgot-pin', [ForgotController::class, 'forgotPin']);
+  Route::post('/kabaya/mobile/forgot/verify-otp', [ForgotController::class, 'verifyOtp']);
+  Route::post('/kabaya/mobile/forgot/reset-pin', [ForgotController::class, 'resetPin']);
+
+  Route::post('/kabaya/mobile/verification/personal', [VerificationController::class, 'verificationPersonal']);
+  Route::post('/kabaya/mobile/verification/address', [VerificationController::class, 'verificationAddress']);
 });
 
 Route::middleware(['guest'])->group(function () {
-  Route::get('/kabaya/mobile/get-residents', [AuthController::class, 'getResident']);
+  Route::get('/kabaya/mobile/get-residents', [SignUpController::class, 'getResident']);
+  Route::post('/kabaya/mobile/sign-up', [SignUpController::class, 'signUp']);
+  Route::post('/kabaya/mobile/sign-up/verify-otp', [SignUpController::class, 'verifyOtp']);
+  Route::post('/kabaya/mobile/sign-up/create-pin', [SignUpController::class, 'createPin']);
 
-  Route::post('/kabaya/mobile/sign-up', [AuthController::class, 'signUp']);
-  Route::post('/kabaya/mobile/verify-otp', [AuthController::class, 'verifyOtp']);
-  Route::post('/kabaya/mobile/create-pin', [AuthController::class, 'createPin']);
-
-  Route::post('/kabaya/mobile/sign-in', [AuthController::class, 'signIn']);
+  Route::post('/kabaya/mobile/sign-in', [SignInController::class, 'signIn']);
+  Route::post('/kabaya/mobile/sign-in/verify-otp', [SignInController::class, 'verifyOtp']);
 });

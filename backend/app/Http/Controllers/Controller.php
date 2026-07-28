@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\OtpVerification;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
-use Request;
 
 abstract class Controller
 {
@@ -30,7 +28,7 @@ abstract class Controller
     public function verify($data)
     {
         $record = OtpVerification::whereHas('user', function ($query) use ($data) {
-            $query->where('email', $data['email']);
+            $query->where('mobile_number', $data['mobile_number']);
         })
             ->latest()
             ->first();

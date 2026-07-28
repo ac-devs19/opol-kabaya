@@ -13,7 +13,6 @@ export default function OtpInput({
   value,
   onChange,
   length = 6,
-  ...props
 }: OtpInputProps) {
   const inputRef = useRef<TextInput>(null);
 
@@ -32,7 +31,6 @@ export default function OtpInput({
         maxLength={length}
         className="absolute opacity-0 w-0 h-0"
         autoFocus
-        {...props}
       />
       <View className="flex-row justify-between gap-3">
         {Array.from({ length }).map((_, index) => {

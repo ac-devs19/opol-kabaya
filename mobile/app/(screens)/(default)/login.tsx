@@ -12,11 +12,9 @@ import { useAuth } from "@/contexts/auth-context";
 import axios from "@/api/axios";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useStore } from "@/hooks/useStore";
 
 export default function Login() {
   const { getUser, logout, user } = useAuth();
-  const { setIsForgot, setEmail } = useStore();
 
   const formSchema = z.object({
     password: z.string().nonempty(),
@@ -55,10 +53,13 @@ export default function Login() {
 
   const handleForgotPin = async () => {
     try {
-      setIsForgot(true);
       await axios.post("/forgot-pin");
-      setEmail(user?.email);
-      router.push("/otp-verification");
+      router.push({
+        pathname: "/forgot/otp-verification",
+        params: {
+          mobile_number: user?.mobile_number,
+        },
+      });
     } catch (error) {
       console.log(error);
     }

@@ -13,10 +13,64 @@ const suffixs = [
   { label: "X", value: "X" },
 ];
 
+const maritalStatuses = [
+  { label: "Single", value: "Single" },
+  { label: "Married", value: "Married" },
+  { label: "Widowed", value: "Widowed" },
+  { label: "Separated", value: "Separated" },
+  { label: "Annulled", value: "Annulled" },
+  { label: "Divorced", value: "Divorced" },
+  { label: "Live-in", value: "Live-in" },
+];
+
+const religions = [
+  { label: "Roman Catholic", value: "Roman Catholic" },
+  { label: "Islam", value: "Islam" },
+  { label: "Iglesia ni Cristo", value: "Iglesia ni Cristo" },
+  {
+    label: "Aglipayan (Philippine Independent Church)",
+    value: "Aglipayan (Philippine Independent Church)",
+  },
+  {
+    label: "Seventh-day Adventist",
+    value: "Seventh-day Adventist",
+  },
+  { label: "Jehovah's Witnesses", value: "Jehovah's Witnesses" },
+  {
+    label: "Church of Jesus Christ of Latter-day Saints (LDS)",
+    value: "Church of Jesus Christ of Latter-day Saints (LDS)",
+  },
+  {
+    label: "United Church of Christ in the Philippines (UCCP)",
+    value: "United Church of Christ in the Philippines (UCCP)",
+  },
+  { label: "United Methodist Church", value: "United Methodist Church" },
+  { label: "Baptist", value: "Baptist" },
+  { label: "Pentecostal", value: "Pentecostal" },
+  { label: "Born Again Christian", value: "Born Again Christian" },
+  { label: "Evangelical Christian", value: "Evangelical Christian" },
+  {
+    label: "Christian (Non-Denominational)",
+    value: "Christian (Non-Denominational)",
+  },
+  { label: "Orthodox Christian", value: "Orthodox Christian" },
+  { label: "Buddhism", value: "Buddhism" },
+  { label: "Hinduism", value: "Hinduism" },
+  { label: "Judaism", value: "Judaism" },
+  { label: "Sikhism", value: "Sikhism" },
+  {
+    label: "Indigenous/Traditional Beliefs",
+    value: "Indigenous/Traditional Beliefs",
+  },
+  { label: "No Religion", value: "No Religion" },
+  { label: "Agnostic", value: "Agnostic" },
+  { label: "Atheist", value: "Atheist" },
+  { label: "Others", value: "Others" },
+];
+
 const address = {
-  municipality: "OPOL",
-  province: "MISAMIS ORIENTAL",
-  zip_code: "9016",
+  province: "Misamis Oriental",
+  municipality: "Opol",
   barangays: [
     { label: "Awang", value: "Awang" },
     { label: "Bagocboc", value: "Bagocboc" },
@@ -33,6 +87,7 @@ const address = {
     { label: "Taboc", value: "Taboc" },
     { label: "Tingalan", value: "Tingalan" },
   ],
+  postal_code: "9016",
 };
 
-export { suffixs, address };
+export { suffixs, maritalStatuses, religions, address };

@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronsDownUp, ChevronsUpDown, MoveRight } from "lucide-react-native";
+import {
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Info,
+  MoveRight,
+  X,
+} from "lucide-react-native";
 import { useRef, useState } from "react";
 import {
   Image,
@@ -16,6 +22,8 @@ import {
 import { router } from "expo-router";
 import { useTabBar } from "@/hooks/useTabBar";
 import { useAuth } from "@/contexts/auth-context";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useStore } from "@/hooks/useStore";
 
 interface LinkSystem {
   label: string;
@@ -28,6 +36,7 @@ export default function Home() {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const setVisible = useTabBar((s) => s.setVisible);
+  const { isVisible, setIsVisible } = useStore();
 
   const lastOffset = useRef(0);
 
@@ -109,6 +118,31 @@ export default function Home() {
             />
           </View>
         </View>
+        {user?.user_verified_at === null && !isVisible && (
+          <View className="mx-5">
+            <Alert icon={Info} className="relative rounded-3xl">
+              <AlertTitle className="font-quicksand-bold">
+                Account Verification Required!
+              </AlertTitle>
+              <View className="absolute -right-1.5 -top-1.5">
+                <Button
+                  onPress={() => setIsVisible(!isVisible)}
+                  size="icon"
+                  variant="destructive"
+                  className="size-6 rounded-full"
+                >
+                  <Icon as={X} />
+                </Button>
+              </View>
+              <AlertDescription className="font-quicksand-medium">
+                Complete your account verification to unlock all services.
+              </AlertDescription>
+              <Button onPress={() => router.push('/home/verifications/personal')} className="rounded-full">
+                <Text className="font-quicksand-semibold">Verify Now</Text>
+              </Button>
+            </Alert>
+          </View>
+        )}
         <View className="flex-row flex-wrap px-3">
           {visibleItems?.map((item, index) => (
             <View key={index} className="w-1/4 p-2 items-center gap-2">

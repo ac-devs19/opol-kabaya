@@ -5,17 +5,16 @@ import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Text } from "@/components/ui/text";
-import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/contexts/auth-context";
 import axios from "@/api/axios";
 import { setToken } from "@/services/auth-storage";
 import { useMutation } from "@tanstack/react-query";
 import MPin from "@/components/mpin";
 import { useEffect } from "react";
-import { router } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
-export default function Pin() {
-  const { resident, setResident, isForgot, setIsForgot } = useStore();
+export default function CreatePin() {
+  const { mobile_number } = useLocalSearchParams();
   const { device_id, token_name, getUser } = useAuth();
 
   const formSchema = z.object({
@@ -33,15 +32,14 @@ export default function Pin() {
 
   const password = watch("password");
 
-  const handlePin = useMutation({
+  const handleCreatePin = useMutation({
     mutationFn: async (data: FormSchema) => {
-      const response = await axios.post("/create-pin", {
+      const response = await axios.post("/sign-up/create-pin", {
         ...data,
-        id: resident.id,
+        mobile_number,
         device_id,
         token_name,
       });
-      setResident();
       await setToken(response.data.token);
       await getUser();
     },
@@ -58,35 +56,8 @@ export default function Pin() {
     },
   });
 
-  const handleResetPin = useMutation({
-    mutationFn: async (data: FormSchema) => {
-      await axios.post("/reset-pin", {
-        ...data,
-        device_id,
-      });
-      await getUser();
-      router.replace("/home");
-      setIsForgot(false);
-    },
-    onError: (error: any) => {
-      const errors = error.response.data.errors;
-      if (errors) {
-        Object.keys(errors).forEach((field) => {
-          setError(field as keyof FormSchema, {
-            type: "server",
-            message: errors[field][0],
-          });
-        });
-      }
-    },
-  });
-
   const onSubmit = async (data: FormSchema) => {
-    if (isForgot) {
-      handleResetPin.mutate(data);
-    } else {
-      handlePin.mutate(data);
-    }
+    handleCreatePin.mutate(data);
   };
 
   useEffect(() => {
@@ -112,11 +83,9 @@ export default function Pin() {
           </View>
           <View className="gap-6">
             <View className="gap-3">
-              <Text className="font-quicksand-bold text-2xl">
-                {isForgot ? "Make a new PIN" : "Create PIN"}
-              </Text>
+              <Text className="font-quicksand-bold text-2xl">Create PIN</Text>
               <Text className="text-sm text-muted-foreground font-quicksand-regular">
-                {isForgot ? "Please make a new PIN" : " Please make your PIN"}
+                Please make your PIN
               </Text>
             </View>
             <Controller

@@ -1,44 +1,26 @@
 import AppLogo from "@/components/app-logo";
-import { Platform, TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Input from "@/components/input";
 import { Text } from "@/components/ui/text";
 import Button from "@/components/button";
-import { useState } from "react";
 import { router } from "expo-router";
 import axios from "@/api/axios";
-import { useStore } from "@/hooks/useStore";
 import { useMutation } from "@tanstack/react-query";
+import InputPhone from "@/components/input-phone";
 
 export default function SignIn() {
-  const [isEmail, setIsEmail] = useState(false);
-  const { setEmail, setIsRegister } = useStore();
-
-  const formSchema = z
-    .object({
-      email: z.string().optional(),
-      id_number: z.string().optional(),
-    })
-    .superRefine((data, ctx) => {
-      if (isEmail && !data.email?.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["email"],
-          message: "The email field is required.",
-        });
-      }
-      if (!isEmail && !data.id_number?.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["id_number"],
-          message: "The ID number field is required.",
-        });
-      }
-    });
+  const formSchema = z.object({
+    mobile_number: z
+      .string()
+      .nonempty("The mobile number field is required.")
+      .regex(/^[0-9]+$/, "The mobile number must be numeric.")
+      .length(10, "The mobile number must be exactly 10 digits.")
+      .regex(/^9\d{9}$/, "The mobile number must start with 9."),
+  });
 
   type FormSchema = z.infer<typeof formSchema>;
 
@@ -50,17 +32,19 @@ export default function SignIn() {
   } = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      id_number: "",
+      mobile_number: "",
     },
   });
 
   const handleSignIn = useMutation({
     mutationFn: async (data: FormSchema) => {
-      setIsRegister(false);
-      const response = await axios.post("/sign-in", data);
-      setEmail(response.data.email);
-      router.push("/otp-verification");
+      await axios.post("/sign-in", data);
+      router.push({
+        pathname: "/sign-in/otp-verification",
+        params: {
+          mobile_number: data.mobile_number,
+        },
+      });
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -100,53 +84,18 @@ export default function SignIn() {
               <AppLogo className="w-20 h-10" />
             </View>
           </View>
-          <View className="gap-6">
-            {isEmail ? (
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    error={errors.email?.message}
-                    label="Email"
-                    placeholder="Enter your email"
-                    keyboardType="email-address"
-                  />
-                )}
-              />
-            ) : (
-              <Controller
-                control={control}
-                name="id_number"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    error={errors.id_number?.message}
-                    label="ID Number"
-                    placeholder="Enter your ID number"
-                    keyboardType={
-                      Platform.OS === "ios" ? "default" : "number-pad"
-                    }
-                  />
-                )}
+          <Controller
+            control={control}
+            name="mobile_number"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputPhone
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                error={errors.mobile_number?.message}
               />
             )}
-            <View className="items-center">
-              <TouchableOpacity
-                onPress={() => setIsEmail(!isEmail)}
-                activeOpacity={0.7}
-              >
-                <Text className="font-quicksand-semibold text-primary">
-                  Login via {!isEmail ? "Email" : "ID Number"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          />
         </View>
         <View className="gap-6">
           <Button

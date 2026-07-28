@@ -19,7 +19,7 @@ interface User {
   suffix: string;
   sex: string;
   marital_status: string;
-  birth_date: string;
+  birth_date: Date;
   religion: string;
   profile_picture: string;
   mobile_number: string;

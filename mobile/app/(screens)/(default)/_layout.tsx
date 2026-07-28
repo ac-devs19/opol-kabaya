@@ -14,6 +14,7 @@ export default function DefaultLayout() {
         guard={user?.user_session.required_password === 1 ? true : false}
       >
         <Stack.Screen name="login" />
+        <Stack.Screen name="forgot" />
       </Stack.Protected>
       <Stack.Protected
         guard={user?.user_session.required_password === 0 ? true : false}

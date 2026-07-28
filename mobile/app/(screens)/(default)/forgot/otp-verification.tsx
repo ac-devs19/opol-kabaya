@@ -6,19 +6,14 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Text } from "@/components/ui/text";
 import OtpInput from "@/components/otp-input";
-import { useStore } from "@/hooks/useStore";
 import axios from "@/api/axios";
-import { router } from "expo-router";
-import { useAuth } from "@/contexts/auth-context";
-import { setToken } from "@/services/auth-storage";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useOtpTimer } from "@/hooks/useOtpTimer";
+import { router, useLocalSearchParams } from "expo-router";
 
 export default function OtpVerification() {
-  const { getUser, device_id, token_name } = useAuth();
-  const { resident, email, setEmail, isRegister, setIsRegister, isForgot } =
-    useStore();
+  const { mobile_number } = useLocalSearchParams();
   const { remainingTime, canResend, startTimer, updateTimer } = useOtpTimer();
 
   const formSchema = z.object({
@@ -44,24 +39,11 @@ export default function OtpVerification() {
 
   const handleOtpVerification = useMutation({
     mutationFn: async (data: FormSchema) => {
-      const response = await axios.post("/verify-otp", {
+      await axios.post("/forgot/verify-otp", {
         ...data,
-        email,
-        id: resident.id,
-        isRegister,
-        isForgot,
-        device_id,
-        token_name,
+        mobile_number,
       });
-      if (isRegister || isForgot) {
-        router.dismissAll();
-        router.replace("/pin");
-      } else {
-        await setToken(response.data.token);
-        await getUser();
-      }
-      setEmail("");
-      setIsRegister(false);
+      router.push("/forgot/reset-pin");
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -134,7 +116,9 @@ export default function OtpVerification() {
               </Text>
               <Text className="text-sm text-muted-foreground font-quicksand-regular">
                 Please enter the one-time-password (OTP) that we sent to{" "}
-                <Text className="text-sm font-quicksand-medium">{email}</Text>
+                <Text className="text-sm font-quicksand-medium">
+                  {mobile_number}
+                </Text>
               </Text>
             </View>
             <Controller

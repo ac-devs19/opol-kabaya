@@ -6,7 +6,7 @@ interface Resident {
   suffix?: string;
   middle_name?: string;
   last_name: string;
-  email?: string;
+  mobile_number?: string;
 }
 
 const initialResident: Resident = {
@@ -15,18 +15,14 @@ const initialResident: Resident = {
   suffix: "",
   middle_name: "",
   last_name: "",
-  email: "",
+  mobile_number: "",
 };
 
 interface Store {
   resident: Resident;
   setResident: (resident?: Partial<Resident>) => void;
-  email: string;
-  setEmail: (email?: string) => void;
-  isRegister: boolean;
-  setIsRegister: (isRegister: boolean) => void;
-  isForgot: boolean;
-  setIsForgot: (isForgot: boolean) => void;
+  isVisible: boolean;
+  setIsVisible: (isVisible: boolean) => void;
 }
 
 export const useStore = create<Store>((set) => ({
@@ -38,10 +34,6 @@ export const useStore = create<Store>((set) => ({
         ...resident,
       },
     }),
-  email: "",
-  setEmail: (email) => set({ email }),
-  isRegister: false,
-  setIsRegister: (isRegister) => set({ isRegister }),
-  isForgot: false,
-  setIsForgot: (isForgot) => set({ isForgot }),
+  isVisible: false,
+  setIsVisible: (isVisible) => set({ isVisible }),
 }));

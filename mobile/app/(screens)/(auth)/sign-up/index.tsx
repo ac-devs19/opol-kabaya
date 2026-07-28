@@ -15,16 +15,22 @@ import axios from "@/api/axios";
 import { useMutation } from "@tanstack/react-query";
 import { useStore } from "@/hooks/useStore";
 import { useEffect } from "react";
+import InputPhone from "@/components/input-phone";
 
 export default function SignUp() {
-  const { resident, setResident, setEmail, setIsRegister } = useStore();
+  const { resident, setResident } = useStore();
 
   const formSchema = z.object({
     first_name: z.string().nonempty("The first name field is required."),
     suffix: z.string().optional(),
     middle_name: z.string().optional(),
     last_name: z.string().nonempty("The last name field is required."),
-    email: z.email().nonempty("The email field is required."),
+    mobile_number: z
+      .string()
+      .nonempty("The mobile number field is required.")
+      .regex(/^[0-9]+$/, "The mobile number must be numeric.")
+      .length(10, "The mobile number must be exactly 10 digits.")
+      .regex(/^9\d{9}$/, "The mobile number must start with 9."),
   });
 
   type FormSchema = z.infer<typeof formSchema>;
@@ -42,7 +48,7 @@ export default function SignUp() {
       suffix: "",
       middle_name: "",
       last_name: "",
-      email: "",
+      mobile_number: "",
     },
   });
 
@@ -52,16 +58,20 @@ export default function SignUp() {
       suffix: resident.suffix ?? "",
       middle_name: resident.middle_name ?? "",
       last_name: resident.last_name ?? "",
-      email: resident.email ?? "",
+      mobile_number: resident.mobile_number ?? "",
     });
   }, [resident, reset]);
 
   const handleSignUp = useMutation({
     mutationFn: async (data: FormSchema) => {
-      setIsRegister(true);
       await axios.post("/sign-up", { ...data, id: resident.id });
-      setEmail(data.email);
-      router.push("/otp-verification");
+      router.push({
+        pathname: "/sign-up/otp-verification",
+        params: {
+          mobile_number: data.mobile_number,
+        },
+      });
+      setResident();
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -73,8 +83,8 @@ export default function SignUp() {
           });
         });
       }
-      if (errors.email) {
-        Alert.alert("Error!", errors.email[0]);
+      if (errors.mobile_number) {
+        Alert.alert("Error!", errors.mobile_number[0]);
       }
     },
   });
@@ -178,16 +188,13 @@ export default function SignUp() {
               />
               <Controller
                 control={control}
-                name="email"
+                name="mobile_number"
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
+                  <InputPhone
                     onChangeText={onChange}
                     onBlur={onBlur}
                     value={value}
-                    error={errors.email?.message}
-                    label="Email"
-                    placeholder="Your email"
-                    keyboardType="email-address"
+                    error={errors.mobile_number?.message}
                   />
                 )}
               />
