@@ -2,7 +2,7 @@ import axiosClient from "axios";
 import { getToken } from "@/services/auth-storage";
 
 const axios = axiosClient.create({
-  baseURL: "http://127.0.0.1:8000/api/kabaya/mobile",
+  baseURL: "http://192.168.0.136:8000/api/kabaya/mobile",
   headers: {
     Accept: "application/json",
   },
