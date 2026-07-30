@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Platform, Pressable, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export default function OtpInput({
         ref={inputRef}
         value={value}
         onChangeText={handleChange}
-        keyboardType={Platform.OS === "ios" ? "default" : "number-pad"}
+        keyboardType="number-pad"
         maxLength={length}
         className="absolute opacity-0 w-0 h-0"
         autoFocus

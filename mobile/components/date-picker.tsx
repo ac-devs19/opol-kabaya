@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Platform, Pressable, TouchableOpacity, View } from "react-native";
+import { Keyboard, Platform, Pressable, TouchableOpacity, View } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -47,8 +47,16 @@ export default function DatePicker({
   const closeResolver = useRef<(() => void) | null>(null);
 
   const handleOpen = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-    setShow(true);
+    if (Keyboard.isVisible?.()) {
+      const subscription = Keyboard.addListener("keyboardDidHide", () => {
+        bottomSheetModalRef.current?.present();
+        subscription.remove();
+      });
+
+      Keyboard.dismiss();
+    } else {
+      bottomSheetModalRef.current?.present();
+    }
   }, []);
 
   const handleClose = useCallback(() => {
@@ -113,10 +121,10 @@ export default function DatePicker({
             value={
               value
                 ? new Intl.DateTimeFormat("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  }).format(value)
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                }).format(value)
                 : ""
             }
             placeholder={placeholder}

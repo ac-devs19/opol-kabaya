@@ -43,7 +43,16 @@ export default function Select({
   const closeResolver = useRef<(() => void) | null>(null);
 
   const handleOpen = useCallback(() => {
-    bottomSheetModalRef.current?.present();
+    if (Keyboard.isVisible?.()) {
+      const subscription = Keyboard.addListener("keyboardDidHide", () => {
+        bottomSheetModalRef.current?.present();
+        subscription.remove();
+      });
+
+      Keyboard.dismiss();
+    } else {
+      bottomSheetModalRef.current?.present();
+    }
   }, []);
 
   const handleClose = useCallback(() => {
