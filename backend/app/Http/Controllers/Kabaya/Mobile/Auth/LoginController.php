@@ -36,6 +36,30 @@ class LoginController extends Controller
         }
 
         UserSession::where('user_id', $user->id)
+            ->where('device_id', $request->device_id)
+            ->update([
+                'required_password' => false,
+            ]);
+    }
+
+    public function biometric(Request $request)
+    {
+        $user = $request->user();
+
+        $session = UserSession::where('user_id', $user->id)
+            ->where('device_id', $request->device_id)->first();
+
+        $session->update([
+            'is_biometric' => $request->is_biometric,
+        ]);
+    }
+
+    public function loginBiometric(Request $request)
+    {
+        $user = $request->user();
+
+        UserSession::where('user_id', $user->id)
+            ->where('device_id', $request->device_id)
             ->update([
                 'required_password' => false,
             ]);

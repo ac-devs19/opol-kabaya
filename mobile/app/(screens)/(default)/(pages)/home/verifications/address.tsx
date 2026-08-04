@@ -91,7 +91,6 @@ export default function Address() {
             <View className="flex-1 h-2 bg-primary rounded-full" />
             <View className="flex-1 h-2 bg-primary rounded-full" />
             <View className="flex-1 h-2 bg-muted rounded-full" />
-            <View className="flex-1 h-2 bg-muted rounded-full" />
           </View>
           <Text className="font-quicksand-bold text-2xl">
             Address Information

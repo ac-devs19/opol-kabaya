@@ -90,4 +90,27 @@ const address = {
   postal_code: "9016",
 };
 
-export { suffixs, maritalStatuses, religions, address };
+const idTypes = [
+  {
+    label: 'PhilID / National ID',
+    value: 'PhilID / National ID'
+  },
+  {
+    label: 'UMID Card',
+    value: 'UMID Card'
+  },
+  {
+    label: 'LTO Driver License',
+    value: 'LTO Driver License'
+  },
+  {
+    label: 'TIN Card',
+    value: 'TIN Card'
+  },
+  {
+    label: 'Other Valid ID',
+    value: 'Other Valid ID'
+  },
+];
+
+export { suffixs, maritalStatuses, religions, address, idTypes };

@@ -78,7 +78,7 @@ export default function OtpVerification() {
     if (canResend) {
       startTimer();
     }
-  }, []);
+  }, [canResend]);
 
   useEffect(() => {
     updateTimer();
@@ -93,11 +93,14 @@ export default function OtpVerification() {
   const handleResend = async () => {
     if (!canResend) return;
 
-    // await axios.post("/resend-otp", {
-    //   id: residentId,
-    // });
-
-    startTimer();
+    try {
+      await axios.post("/resend-otp", {
+        mobile_number
+      });
+      startTimer();
+    } catch (error: any) {
+      console.log(error)
+    }
   };
 
   return (

@@ -3,7 +3,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import Button from "@/components/button";
-import { Button as Btn } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { router } from "expo-router";
 
@@ -25,14 +24,9 @@ export default function CheckInformation() {
           </Text>
           <View className="flex-1 gap-6">
             <View className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <Text className="font-quicksand-semibold text-lg text-muted-foreground">
-                  Personal Information
-                </Text>
-                <Btn variant="link">
-                  <Text>Edit</Text>
-                </Btn>
-              </View>
+              <Text className="font-quicksand-semibold text-lg text-muted-foreground">
+                Personal Information
+              </Text>
               <View className="flex-row">
                 <View className="flex-1 gap-1.5">
                   <Text className="font-quicksand-semibold">First Name:</Text>
@@ -62,10 +56,10 @@ export default function CheckInformation() {
                   <Text className="font-quicksand-medium">
                     {user?.birth_date
                       ? new Intl.DateTimeFormat("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        }).format(new Date(user.birth_date))
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      }).format(new Date(user.birth_date))
                       : undefined}
                   </Text>
                   <Text className="font-quicksand-medium">{user?.sex}</Text>
@@ -79,14 +73,9 @@ export default function CheckInformation() {
               </View>
             </View>
             <View className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <Text className="font-quicksand-semibold text-lg text-muted-foreground">
-                  Address Information
-                </Text>
-                <Btn variant="link">
-                  <Text>Edit</Text>
-                </Btn>
-              </View>
+              <Text className="font-quicksand-semibold text-lg text-muted-foreground">
+                Address Information
+              </Text>
               <View className="flex-row">
                 <View className="flex-1 gap-1.5">
                   <Text className="font-quicksand-semibold">Province:</Text>

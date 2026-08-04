@@ -16,9 +16,13 @@ import { useMutation } from "@tanstack/react-query";
 import { useStore } from "@/hooks/useStore";
 import { useEffect } from "react";
 import InputPhone from "@/components/input-phone";
+import { useOtpTimer } from "@/hooks/useOtpTimer";
+import { useOtpAlert } from "@/hooks/useOtpAlert";
 
 export default function SignUp() {
   const { resident, setResident } = useStore();
+  const { canResend } = useOtpTimer()
+  const { setOpen } = useOtpAlert()
 
   const formSchema = z.object({
     first_name: z.string().nonempty("The first name field is required."),
@@ -90,7 +94,11 @@ export default function SignUp() {
   });
 
   const onSubmit = async (data: FormSchema) => {
-    handleSignUp.mutate(data);
+    if (!canResend) {
+      setOpen(true)
+    } else {
+      handleSignUp.mutate(data);
+    }
   };
 
   const showForm = resident.id !== null;

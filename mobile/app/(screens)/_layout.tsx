@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Platform } from "react-native";
 import { ArrowLeft, ChevronLeft } from "lucide-react-native";
+import OtpAlert from "@/components/otp-alert";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ export default function ScreenLayout() {
               }}
             />
           </Stack>
+          <OtpAlert />
         </QueryClientProvider>
       </KeyboardProvider>
     </BottomSheetModalProvider>

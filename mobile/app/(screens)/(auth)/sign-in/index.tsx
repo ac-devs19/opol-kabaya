@@ -11,8 +11,13 @@ import { router } from "expo-router";
 import axios from "@/api/axios";
 import { useMutation } from "@tanstack/react-query";
 import InputPhone from "@/components/input-phone";
+import { useOtpTimer } from "@/hooks/useOtpTimer";
+import { useOtpAlert } from "@/hooks/useOtpAlert";
 
 export default function SignIn() {
+  const { canResend } = useOtpTimer()
+  const { setOpen } = useOtpAlert()
+
   const formSchema = z.object({
     mobile_number: z
       .string()
@@ -60,7 +65,11 @@ export default function SignIn() {
   });
 
   const onSubmit = async (data: FormSchema) => {
-    handleSignIn.mutate(data);
+    if (!canResend) {
+      setOpen(true)
+    } else {
+      handleSignIn.mutate(data);
+    }
   };
 
   const processing = handleSignIn.isPending;

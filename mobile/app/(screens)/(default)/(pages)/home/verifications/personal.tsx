@@ -109,7 +109,6 @@ export default function Personal() {
             <View className="flex-1 h-2 bg-primary rounded-full" />
             <View className="flex-1 h-2 bg-muted rounded-full" />
             <View className="flex-1 h-2 bg-muted rounded-full" />
-            <View className="flex-1 h-2 bg-muted rounded-full" />
           </View>
           <Text className="font-quicksand-bold text-2xl">
             Personal Information

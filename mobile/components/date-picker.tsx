@@ -50,12 +50,14 @@ export default function DatePicker({
     if (Keyboard.isVisible?.()) {
       const subscription = Keyboard.addListener("keyboardDidHide", () => {
         bottomSheetModalRef.current?.present();
+        setShow(true)
         subscription.remove();
       });
 
       Keyboard.dismiss();
     } else {
       bottomSheetModalRef.current?.present();
+      setShow(true)
     }
   }, []);
 
@@ -152,22 +154,20 @@ export default function DatePicker({
               <Text className="font-quicksand-semibold text-primary">Done</Text>
             </TouchableOpacity>
           </View>
-          <BottomSheetScrollView>
-            <SafeAreaView edges={["bottom"]} className="px-6 gap-2">
-              <View className="items-center">
-                {show && (
-                  <DateTimePicker
-                    value={value ?? new Date()}
-                    mode={mode}
-                    display={display}
-                    minimumDate={minimumDate}
-                    maximumDate={maximumDate}
-                    onChange={handleChange}
-                  />
-                )}
-              </View>
-            </SafeAreaView>
-          </BottomSheetScrollView>
+          <SafeAreaView edges={["bottom"]} className="px-6 gap-2">
+            <View className="items-center">
+              {show && (
+                <DateTimePicker
+                  value={value ?? new Date()}
+                  mode={mode}
+                  display={display}
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  onChange={handleChange}
+                />
+              )}
+            </View>
+          </SafeAreaView>
         </BottomSheetModal>
       ) : (
         show && (

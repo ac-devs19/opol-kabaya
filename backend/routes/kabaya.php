@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\Kabaya\Mobile\App\VerificationController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\ForgotController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\LoginController;
@@ -15,6 +16,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
   Route::post('/kabaya/mobile/login', [LoginController::class, 'login']);
   Route::post('/kabaya/mobile/lock', [LoginController::class, 'lock']);
+  Route::post('/kabaya/mobile/biometric', [LoginController::class, 'biometric']);
+  Route::post('/kabaya/mobile/login/biometric', [LoginController::class, 'loginBiometric']);
   Route::post('/kabaya/mobile/logout', [LoginController::class, 'logout']);
 
   Route::post('/kabaya/mobile/forgot-pin', [ForgotController::class, 'forgotPin']);
@@ -34,3 +37,5 @@ Route::middleware(['guest'])->group(function () {
   Route::post('/kabaya/mobile/sign-in', [SignInController::class, 'signIn']);
   Route::post('/kabaya/mobile/sign-in/verify-otp', [SignInController::class, 'verifyOtp']);
 });
+
+Route::post('/kabaya/mobile/resend-otp', [Controller::class, 'resendOtp']);

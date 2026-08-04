@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\OtpVerification;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 abstract class Controller
@@ -46,5 +48,16 @@ abstract class Controller
         }
 
         OtpVerification::where('user_id', $record->user_id)->delete();
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $data = $request->validate([
+            'mobile_number' => ['required'],
+        ]);
+
+        $user_id = User::where('mobile_number', $data['mobile_number'])->first();
+
+        $this->otp($user_id);
     }
 }

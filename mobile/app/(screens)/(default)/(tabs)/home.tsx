@@ -264,7 +264,7 @@ export default function Home() {
                 className="rounded-full"
               >
                 <Text className="font-quicksand-medium text-sm">See More</Text>
-                <MoveRight strokeWidth={1.5} />
+                <Icon as={MoveRight} strokeWidth={1.5} size={24} />
               </Button>
             </View>
           </View>
