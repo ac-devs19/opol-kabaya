@@ -34,7 +34,12 @@ export default function TabsLayout() {
                   size="icon"
                   className="rounded-full"
                 >
-                  <Icon as={Bell} size={24} strokeWidth={1.5} />
+                  <Icon
+                    as={Bell}
+                    size={24}
+                    strokeWidth={1.5}
+                    className="text-orange-500"
+                  />
                 </Button>
               </View>
             </SafeAreaView>

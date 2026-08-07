@@ -1,24 +1,35 @@
 <?php
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Kabaya\Mobile\App\Services\SBController;
 use App\Http\Controllers\Kabaya\Mobile\App\VerificationController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\ForgotController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\LoginController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\SignInController;
 use App\Http\Controllers\Kabaya\Mobile\Auth\SignUpController;
+use App\Http\Controllers\Kabaya\Mobile\GlobalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
   Route::get('/kabaya/mobile/user', function (Request $request) {
-    return $request->user()->load('user_session');
+    $user = $request->user();
+    $deviceId = $request->device_id;
+
+    $user->load([
+      'user_session' => function ($query) use ($deviceId) {
+        $query->where('device_id', $deviceId);
+      }
+    ]);
+
+    return $user;
   });
 
   Route::post('/kabaya/mobile/login', [LoginController::class, 'login']);
   Route::post('/kabaya/mobile/lock', [LoginController::class, 'lock']);
   Route::post('/kabaya/mobile/biometric', [LoginController::class, 'biometric']);
   Route::post('/kabaya/mobile/login/biometric', [LoginController::class, 'loginBiometric']);
-  Route::post('/kabaya/mobile/logout', [LoginController::class, 'logout']);
+  Route::get('/kabaya/mobile/logout', [LoginController::class, 'logout']);
 
   Route::post('/kabaya/mobile/forgot-pin', [ForgotController::class, 'forgotPin']);
   Route::post('/kabaya/mobile/forgot/verify-otp', [ForgotController::class, 'verifyOtp']);
@@ -26,6 +37,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
   Route::post('/kabaya/mobile/verification/personal', [VerificationController::class, 'verificationPersonal']);
   Route::post('/kabaya/mobile/verification/address', [VerificationController::class, 'verificationAddress']);
+
+  Route::get('/kabaya/mobile/services/sb/get-folder', [SBController::class, 'getFolder']);
+  Route::get('/kabaya/mobile/services/sb/get-pdf/{id}', [SBController::class, 'getPdf']);
+  Route::get('/kabaya/mobile/services/sb/preview-pdf/{id}', [SBController::class, 'previewPdf']);
 });
 
 Route::middleware(['guest'])->group(function () {
@@ -38,4 +53,4 @@ Route::middleware(['guest'])->group(function () {
   Route::post('/kabaya/mobile/sign-in/verify-otp', [SignInController::class, 'verifyOtp']);
 });
 
-Route::post('/kabaya/mobile/resend-otp', [Controller::class, 'resendOtp']);
+Route::post('/kabaya/mobile/resend-otp', [GlobalController::class, 'resendOtp']);

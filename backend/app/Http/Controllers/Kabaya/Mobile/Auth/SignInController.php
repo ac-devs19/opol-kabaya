@@ -13,16 +13,16 @@ class SignInController extends Controller
     public function signIn(Request $request)
     {
         $data = $request->validate([
-            'mobile_number' => ['required'],
+            'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('mobile_number', $data['mobile_number'])
-            ->whereNotNull('mobile_number')
+        $user = User::where('email', $data['email'])
+            ->whereNotNull('email_verified_at')
             ->first();
 
         if (!$user) {
             throw ValidationException::withMessages([
-                'mobile_number' => 'This mobile number is not registered.',
+                'email' => 'This email is not registered.',
             ]);
         }
 
@@ -32,13 +32,13 @@ class SignInController extends Controller
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([
-            'mobile_number' => ['required'],
+            'email' => ['required', 'email'],
             'otp' => ['required'],
         ]);
 
         $this->verify($data);
 
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
+        $user = User::where('email', $data['email'])->first();
 
         UserSession::updateOrCreate(
             [

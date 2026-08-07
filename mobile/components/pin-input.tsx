@@ -47,8 +47,10 @@ export default function PinInput({
           <View
             key={index}
             className={cn(
-              "size-5 rounded-full border border-border",
-              filled ? "bg-primary" : "bg-secondary",
+              "size-5 rounded-full border",
+              filled
+                ? "bg-primary border-transparent"
+                : "bg-secondary border-border",
             )}
           />
         );

@@ -54,7 +54,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   device_id: "",
   token_name: "",
   user: null,
-  loading: true,
+  loading: false,
 
   setLoading: (loading) => set({ loading }),
 
@@ -78,7 +78,12 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
   getUser: async () => {
     try {
-      const { data } = await axios.get("/user");
+      set({ loading: true });
+      const { data } = await axios.get("/user", {
+        params: {
+          device_id: get().device_id,
+        },
+      });
       set({ user: data });
     } catch (error: any) {
       console.log(error);
@@ -100,11 +105,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
   logout: async () => {
     try {
-      await axios.post("/logout", {
-        params: {
-          device_id: get().device_id,
-        },
-      });
+      await axios.get("/logout");
       await setToken(null);
       set({
         user: null,

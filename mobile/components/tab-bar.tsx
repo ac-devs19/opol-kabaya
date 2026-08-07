@@ -48,11 +48,11 @@ export default function TabBar({
   return (
     <Animated.View
       style={[actionBarStyle]}
-      className="w-full absolute bottom-0 px-5"
+      className="w-full absolute bottom-0 ios:px-5"
     >
-      <SafeAreaView edges={["bottom"]}>
-        <View className="bg-secondary p-2 rounded-full flex-row justify-between items-center gap-2">
-          <View className="flex-row gap-3 p-2 bg-background rounded-full">
+      <SafeAreaView edges={["bottom"]} className="android:bg-background">
+        <View className="ios:bg-secondary android:bg-background ios:p-2 android:px-3 android:py-2 ios:rounded-full flex-row justify-between items-center gap-2">
+          <View className="flex-row gap-3 p-2 ios:bg-background android:bg-secondary rounded-full">
             {state.routes.map((route, index) => {
               const { options } = descriptors[route.key];
 
@@ -85,7 +85,7 @@ export default function TabBar({
                   testID={options.tabBarButtonTestID}
                   onPress={onPress}
                   onLongPress={onLongPress}
-                  className="rounded-full size-14"
+                  className="rounded-full ios:size-14 android:size-12"
                   variant={isFocused ? "default" : "ghost"}
                 >
                   <Icon
@@ -102,7 +102,7 @@ export default function TabBar({
           </View>
           <Button
             onPress={() => router.navigate("/account")}
-            className="rounded-full size-14 p-0.5"
+            className="rounded-full ios:size-14 android:size-12 p-0.5"
           >
             <Image
               source={require("@/assets/images/kabaya/user.png")}

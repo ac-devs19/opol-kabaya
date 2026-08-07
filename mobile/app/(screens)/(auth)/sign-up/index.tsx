@@ -15,26 +15,22 @@ import axios from "@/api/axios";
 import { useMutation } from "@tanstack/react-query";
 import { useStore } from "@/hooks/useStore";
 import { useEffect } from "react";
-import InputPhone from "@/components/input-phone";
 import { useOtpTimer } from "@/hooks/useOtpTimer";
 import { useOtpAlert } from "@/hooks/useOtpAlert";
+import { useLoader } from "@/hooks/useLoader";
 
 export default function SignUp() {
   const { resident, setResident } = useStore();
-  const { canResend } = useOtpTimer()
-  const { setOpen } = useOtpAlert()
+  const { canResend, startTimer } = useOtpTimer();
+  const { setOpen } = useOtpAlert();
+  const { processing, setProcessing } = useLoader();
 
   const formSchema = z.object({
     first_name: z.string().nonempty("The first name field is required."),
     suffix: z.string().optional(),
     middle_name: z.string().optional(),
     last_name: z.string().nonempty("The last name field is required."),
-    mobile_number: z
-      .string()
-      .nonempty("The mobile number field is required.")
-      .regex(/^[0-9]+$/, "The mobile number must be numeric.")
-      .length(10, "The mobile number must be exactly 10 digits.")
-      .regex(/^9\d{9}$/, "The mobile number must start with 9."),
+    email: z.email().nonempty("The email field is required."),
   });
 
   type FormSchema = z.infer<typeof formSchema>;
@@ -52,7 +48,7 @@ export default function SignUp() {
       suffix: "",
       middle_name: "",
       last_name: "",
-      mobile_number: "",
+      email: "",
     },
   });
 
@@ -62,20 +58,24 @@ export default function SignUp() {
       suffix: resident.suffix ?? "",
       middle_name: resident.middle_name ?? "",
       last_name: resident.last_name ?? "",
-      mobile_number: resident.mobile_number ?? "",
+      email: resident.email ?? "",
     });
   }, [resident, reset]);
 
   const handleSignUp = useMutation({
     mutationFn: async (data: FormSchema) => {
+      setProcessing(true);
       await axios.post("/sign-up", { ...data, id: resident.id });
       router.push({
         pathname: "/sign-up/otp-verification",
         params: {
-          mobile_number: data.mobile_number,
+          email: data.email,
         },
       });
+    },
+    onSuccess: () => {
       setResident();
+      startTimer();
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -87,22 +87,24 @@ export default function SignUp() {
           });
         });
       }
-      if (errors.mobile_number) {
-        Alert.alert("Error!", errors.mobile_number[0]);
+      if (errors.email) {
+        Alert.alert("", errors.email[0]);
       }
+    },
+    onSettled: () => {
+      setProcessing(false);
     },
   });
 
   const onSubmit = async (data: FormSchema) => {
     if (!canResend) {
-      setOpen(true)
+      setOpen(true);
     } else {
       handleSignUp.mutate(data);
     }
   };
 
   const showForm = resident.id !== null;
-  const processing = handleSignUp.isPending;
 
   return (
     <KeyboardAwareScrollView
@@ -196,13 +198,15 @@ export default function SignUp() {
               />
               <Controller
                 control={control}
-                name="mobile_number"
+                name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <InputPhone
+                  <Input
                     onChangeText={onChange}
                     onBlur={onBlur}
                     value={value}
-                    error={errors.mobile_number?.message}
+                    error={errors.email?.message}
+                    label="Email"
+                    placeholder="Your email"
                   />
                 )}
               />
@@ -228,12 +232,25 @@ export default function SignUp() {
         <View className="gap-6">
           {showForm && (
             <View className="gap-6">
-              <Button
-                onPress={handleSubmit(onSubmit)}
-                label="Register"
-                loading={processing}
-                disabled={processing}
-              />
+              <View className="gap-3">
+                <Text className="text-center font-quicksand-medium text-sm text-muted-foreground">
+                  By tapping{" "}
+                  <Text className="font-quicksand-bold text-sm">Register</Text>,
+                  you agree with the{" "}
+                  <Text className="font-quicksand-bold text-sm text-primary">
+                    Terms and Conditions
+                  </Text>{" "}
+                  and{" "}
+                  <Text className="font-quicksand-bold text-sm text-primary">
+                    Privacy Notice.
+                  </Text>
+                </Text>
+                <Button
+                  onPress={handleSubmit(onSubmit)}
+                  label="Register"
+                  disabled={processing}
+                />
+              </View>
               <View className="flex-row gap-3 items-center">
                 <View className="flex-1 border-b border-muted" />
                 <Text className="font-quicksand-regular">or</Text>

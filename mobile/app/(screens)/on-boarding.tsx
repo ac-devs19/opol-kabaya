@@ -12,11 +12,11 @@ export default function OnBoarding() {
       </View>
       <View className="gap-6 p-6">
         <Button
-          onPress={() => router.replace("/sign-up")}
+          onPress={() => router.push("/sign-up")}
           label="Start an account"
         />
         <Button
-          onPress={() => router.replace("/sign-in")}
+          onPress={() => router.push("/sign-in")}
           label="Sign in"
           variant="secondary"
         />

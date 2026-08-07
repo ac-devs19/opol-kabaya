@@ -8,11 +8,12 @@ import { Icon } from "@/components/ui/icon";
 import { Platform } from "react-native";
 import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import OtpAlert from "@/components/otp-alert";
+import Loader from "@/components/loader";
 
 const queryClient = new QueryClient();
 
 export default function ScreenLayout() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <BottomSheetModalProvider>
@@ -85,6 +86,7 @@ export default function ScreenLayout() {
             />
           </Stack>
           <OtpAlert />
+          {/* <Loader loading={loading} /> */}
         </QueryClientProvider>
       </KeyboardProvider>
     </BottomSheetModalProvider>

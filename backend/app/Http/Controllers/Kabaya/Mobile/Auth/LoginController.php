@@ -70,9 +70,5 @@ class LoginController extends Controller
         $user = $request->user();
 
         $user->currentAccessToken()->delete();
-
-        UserSession::where('user_id', $user->id)
-            ->where('device_id', $request->device_id)
-            ->delete();
     }
 }

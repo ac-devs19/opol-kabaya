@@ -14,7 +14,7 @@ import { useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
 
 export default function CreatePin() {
-  const { mobile_number } = useLocalSearchParams();
+  const { email } = useLocalSearchParams();
   const { device_id, token_name, getUser } = useAuth();
 
   const formSchema = z.object({
@@ -36,7 +36,7 @@ export default function CreatePin() {
     mutationFn: async (data: FormSchema) => {
       const response = await axios.post("/sign-up/create-pin", {
         ...data,
-        mobile_number,
+        email,
         device_id,
         token_name,
       });

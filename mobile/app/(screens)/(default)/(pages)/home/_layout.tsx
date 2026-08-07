@@ -12,6 +12,7 @@ export default function HomeLayout() {
     >
       <Stack.Protected guard={user?.user_verified_at === null ? true : false}>
         <Stack.Screen name="verifications" />
+        <Stack.Screen name="services" />
       </Stack.Protected>
     </Stack>
   );

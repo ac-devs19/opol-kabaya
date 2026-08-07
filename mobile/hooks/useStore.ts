@@ -6,7 +6,7 @@ interface Resident {
   suffix?: string;
   middle_name?: string;
   last_name: string;
-  mobile_number?: string;
+  email: string;
 }
 
 const initialResident: Resident = {
@@ -15,7 +15,21 @@ const initialResident: Resident = {
   suffix: "",
   middle_name: "",
   last_name: "",
-  mobile_number: "",
+  email: "",
+};
+
+interface Ordinance {
+  folder_id: string;
+  pdf_id: string;
+  folder_name: string;
+  pdf_name: string;
+}
+
+const initialOrdinance: Ordinance = {
+  folder_id: "",
+  pdf_id: "",
+  folder_name: "",
+  pdf_name: "",
 };
 
 interface Store {
@@ -23,6 +37,8 @@ interface Store {
   setResident: (resident?: Partial<Resident>) => void;
   isVisible: boolean;
   setIsVisible: (isVisible: boolean) => void;
+  ordinance: Ordinance;
+  setOrdinance: (ordinance?: Partial<Ordinance>) => void;
 }
 
 export const useStore = create<Store>((set) => ({
@@ -36,4 +52,12 @@ export const useStore = create<Store>((set) => ({
     }),
   isVisible: false,
   setIsVisible: (isVisible) => set({ isVisible }),
+  ordinance: initialOrdinance,
+  setOrdinance: (ordinance = {}) =>
+    set({
+      ordinance: {
+        ...initialOrdinance,
+        ...ordinance,
+      },
+    }),
 }));

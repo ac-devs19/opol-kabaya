@@ -23,8 +23,8 @@ export default function Login() {
   const { getUser, logout, user, device_id } = useAuth();
   const [biometricType, setBiometricType] = useState<string>("Biometric");
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
-  const { canResend } = useOtpTimer()
-  const { setOpen } = useOtpAlert()
+  const { canResend } = useOtpTimer();
+  const { setOpen } = useOtpAlert();
 
   const formSchema = z.object({
     password: z.string().nonempty(),
@@ -102,7 +102,7 @@ export default function Login() {
 
   const handleForgotPin = async () => {
     if (!canResend) {
-      setOpen(true)
+      setOpen(true);
     } else {
       try {
         await axios.post("/forgot-pin");
@@ -125,12 +125,21 @@ export default function Login() {
         const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
         if (hasHardware && isEnrolled) {
-          const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-          if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+          const types =
+            await LocalAuthentication.supportedAuthenticationTypesAsync();
+          if (
+            types.includes(
+              LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION,
+            )
+          ) {
             setBiometricType("Face ID");
-          } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+          } else if (
+            types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)
+          ) {
             setBiometricType("Fingerprint / Touch ID");
-          } else if (types.includes(LocalAuthentication.AuthenticationType.IRIS)) {
+          } else if (
+            types.includes(LocalAuthentication.AuthenticationType.IRIS)
+          ) {
             setBiometricType("Iris Scan");
           }
         }
@@ -180,7 +189,7 @@ export default function Login() {
               </View>
             </View>
             <View className="gap-6">
-              {isBiometricAvailable && user?.user_session.is_biometric && (
+              {isBiometricAvailable && user?.user_session.is_biometric ? (
                 <View className="items-center">
                   <Button
                     onPress={promptBiometric}
@@ -189,7 +198,11 @@ export default function Login() {
                     size="sm"
                   >
                     <Icon
-                      as={biometricType === "Face ID" ? ScanFace : FingerprintPattern}
+                      as={
+                        biometricType === "Face ID"
+                          ? ScanFace
+                          : FingerprintPattern
+                      }
                       size={24}
                       strokeWidth={1.5}
                     />
@@ -198,7 +211,7 @@ export default function Login() {
                     </Text>
                   </Button>
                 </View>
-              )}
+              ) : null}
               <NumberPad value={value} onChange={onChange} maxLength={4} />
               <View className="flex-row items-center justify-evenly">
                 <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.7}>

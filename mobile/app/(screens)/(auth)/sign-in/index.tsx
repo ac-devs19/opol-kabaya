@@ -10,21 +10,20 @@ import Button from "@/components/button";
 import { router } from "expo-router";
 import axios from "@/api/axios";
 import { useMutation } from "@tanstack/react-query";
-import InputPhone from "@/components/input-phone";
 import { useOtpTimer } from "@/hooks/useOtpTimer";
 import { useOtpAlert } from "@/hooks/useOtpAlert";
+import { useAuth } from "@/contexts/auth-context";
+import { useLoader } from "@/hooks/useLoader";
+import Input from "@/components/input";
 
 export default function SignIn() {
-  const { canResend } = useOtpTimer()
-  const { setOpen } = useOtpAlert()
+  const { device_id } = useAuth();
+  const { canResend, startTimer } = useOtpTimer();
+  const { setOpen } = useOtpAlert();
+  const { processing, setProcessing } = useLoader();
 
   const formSchema = z.object({
-    mobile_number: z
-      .string()
-      .nonempty("The mobile number field is required.")
-      .regex(/^[0-9]+$/, "The mobile number must be numeric.")
-      .length(10, "The mobile number must be exactly 10 digits.")
-      .regex(/^9\d{9}$/, "The mobile number must start with 9."),
+    email: z.email().nonempty("The email field is required."),
   });
 
   type FormSchema = z.infer<typeof formSchema>;
@@ -37,19 +36,23 @@ export default function SignIn() {
   } = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      mobile_number: "",
+      email: "",
     },
   });
 
   const handleSignIn = useMutation({
     mutationFn: async (data: FormSchema) => {
-      await axios.post("/sign-in", data);
+      setProcessing(true);
+      await axios.post("/sign-in", { ...data, device_id });
       router.push({
         pathname: "/sign-in/otp-verification",
         params: {
-          mobile_number: data.mobile_number,
+          email: data.email,
         },
       });
+    },
+    onSuccess: () => {
+      startTimer();
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -62,17 +65,18 @@ export default function SignIn() {
         });
       }
     },
+    onSettled: () => {
+      setProcessing(false);
+    },
   });
 
   const onSubmit = async (data: FormSchema) => {
     if (!canResend) {
-      setOpen(true)
+      setOpen(true);
     } else {
       handleSignIn.mutate(data);
     }
   };
-
-  const processing = handleSignIn.isPending;
 
   return (
     <KeyboardAwareScrollView
@@ -95,13 +99,16 @@ export default function SignIn() {
           </View>
           <Controller
             control={control}
-            name="mobile_number"
+            name="email"
             render={({ field: { onChange, onBlur, value } }) => (
-              <InputPhone
+              <Input
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                error={errors.mobile_number?.message}
+                error={errors.email?.message}
+                label="Email"
+                placeholder="Your email"
+                keyboardType="email-address"
               />
             )}
           />
@@ -110,7 +117,6 @@ export default function SignIn() {
           <Button
             onPress={handleSubmit(onSubmit)}
             label="Login"
-            loading={processing}
             disabled={processing}
           />
           <View className="flex-row gap-3 items-center">

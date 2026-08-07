@@ -10,20 +10,23 @@ import {
   MoveRight,
   X,
 } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Image,
   Pressable,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { useTabBar } from "@/hooks/useTabBar";
 import { useAuth } from "@/contexts/auth-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useStore } from "@/hooks/useStore";
+import { useTabBarScroll } from "@/hooks/useTabBarScroll";
+import { useAppColors } from "@/lib/theme";
+import { useGreeting } from "@/hooks/useGreeting";
 
 interface LinkSystem {
   label: string;
@@ -35,34 +38,11 @@ interface LinkSystem {
 export default function Home() {
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
-  const setVisible = useTabBar((s) => s.setVisible);
   const { isVisible, setIsVisible } = useStore();
-
-  const lastOffset = useRef(0);
-
-  const handleScroll = (event: any) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-
-    if (currentOffset > lastOffset.current + 10) {
-      setVisible(false);
-    } else if (currentOffset < lastOffset.current - 10) {
-      setVisible(true);
-    }
-
-    lastOffset.current = currentOffset;
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-
-    if (hour < 12) {
-      return "Good Morning";
-    } else if (hour < 18) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
-  };
+  const { width } = useWindowDimensions();
+  const { handleScroll } = useTabBarScroll();
+  const { primary } = useAppColors();
+  const greeting = useGreeting();
 
   const getLinkSystem = async () => {
     const { data } = await axios.get("/link-systems");
@@ -81,12 +61,23 @@ export default function Home() {
     return data;
   };
 
-  const { data: newsData } = useQuery({
+  const {
+    data: dataNews,
+    isLoading: isLoadingNews,
+    refetch: refetchNews,
+    isRefetching: isRefetchingNews,
+  } = useQuery({
     queryKey: ["home-news"],
     queryFn: getNews,
   });
 
-  const news = newsData?.data?.slice(0, 2);
+  const news = dataNews?.data?.slice(0, 2);
+
+  const handleRefresh = async () => {
+    await Promise.all([refetch(), refetchNews()]);
+  };
+
+  const refreshing = isRefetching || isRefetchingNews;
 
   return (
     <ScrollView
@@ -97,16 +88,19 @@ export default function Home() {
         flexGrow: 1,
       }}
       refreshControl={
-        <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor={primary}
+          colors={[primary]}
+        />
       }
     >
       <View className="gap-8 pb-20">
         <View className="px-5">
           <View className="flex-row items-center justify-between">
             <View className="gap-1">
-              <Text className="font-quicksand-bold text-2xl">
-                {getGreeting()},
-              </Text>
+              <Text className="font-quicksand-bold text-2xl">{greeting},</Text>
               <Text className="font-quicksand-bold text-2xl">
                 {user?.first_name}
               </Text>
@@ -137,13 +131,45 @@ export default function Home() {
               <AlertDescription className="font-quicksand-medium">
                 Complete your account verification to unlock all services.
               </AlertDescription>
-              <Button onPress={() => router.push('/home/verifications/personal')} className="rounded-full">
+              <Button
+                onPress={() => router.push("/home/verifications/personal")}
+                className="rounded-full"
+              >
                 <Text className="font-quicksand-semibold">Verify Now</Text>
               </Button>
             </Alert>
           </View>
         )}
+        <Image
+          source={require("@/assets/images/kabaya/banner.png")}
+          style={{
+            width: width,
+            height: width * (486 / 1280),
+          }}
+          resizeMode="contain"
+        />
         <View className="flex-row flex-wrap px-3">
+          <View className="w-1/4 p-2 items-center gap-2">
+            <TouchableOpacity
+              onPress={() => router.push("/home/services/sangguniang-bayan")}
+              activeOpacity={0.7}
+              className="border-2 border-primary w-full aspect-square rounded-full items-center justify-center overflow-hidden"
+            >
+              {/* <Image
+                resizeMode="contain"
+                source={{
+                  uri: `http://127.0.0.1:8000/storage/${item.icon}`,
+                }}
+                className="size-full"
+              /> */}
+            </TouchableOpacity>
+            <Text
+              numberOfLines={2}
+              className="text-center font-quicksand-medium text-xs"
+            >
+              Sangguniang Bayan
+            </Text>
+          </View>
           {visibleItems?.map((item, index) => (
             <View key={index} className="w-1/4 p-2 items-center gap-2">
               <TouchableOpacity

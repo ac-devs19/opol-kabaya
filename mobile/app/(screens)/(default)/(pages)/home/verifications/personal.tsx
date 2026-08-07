@@ -110,9 +110,14 @@ export default function Personal() {
             <View className="flex-1 h-2 bg-muted rounded-full" />
             <View className="flex-1 h-2 bg-muted rounded-full" />
           </View>
-          <Text className="font-quicksand-bold text-2xl">
-            Personal Information
-          </Text>
+          <View className="gap-3">
+            <Text className="font-quicksand-bold text-2xl">
+              Personal Information
+            </Text>
+            <Text className="text-sm text-muted-foreground font-quicksand-regular">
+              Please fill out your personal details below
+            </Text>
+          </View>
           <View className="flex-1 gap-6">
             <View className="flex-row gap-3">
               <Controller

@@ -19,7 +19,7 @@ class ForgotController extends Controller
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([
-            'mobile_number' => ['required'],
+            'email' => ['required', 'email'],
             'otp' => ['required'],
         ]);
 

@@ -21,6 +21,7 @@ class SignUpController extends Controller
             'suffix',
             'middle_name',
             'last_name',
+            'email'
         )
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -48,17 +49,17 @@ class SignUpController extends Controller
             'suffix' => ['nullable'],
             'middle_name' => ['nullable'],
             'last_name' => ['required'],
-            'mobile_number' => ['required'],
+            'email' => ['required', 'email'],
         ]);
 
-        $existing = User::where('mobile_number', $data['mobile_number'])
+        $existing = User::where('email', $data['email'])
             ->where('id', '!=', $user->id)
-            ->whereNotNull('mobile_verified_at')
+            ->whereNotNull('email_verified_at')
             ->first();
 
         if ($existing) {
             throw ValidationException::withMessages([
-                'mobile_number' => 'The mobile number has already been taken.',
+                'email' => 'The email has already been taken.'
             ]);
         }
 
@@ -70,23 +71,23 @@ class SignUpController extends Controller
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([
-            'mobile_number' => ['required'],
+            'email' => ['required'],
             'otp' => ['required'],
         ]);
 
         $this->verify($data);
 
-        $user = User::where('mobile_number', $data['mobile_number'])->first();
+        $user = User::where('email', $data['email'])->first();
 
         $user->update([
-            'mobile_verified_at' => now(),
+            'email_verified_at' => now(),
         ]);
     }
 
     public function createPin(Request $request)
     {
-        $user = User::where('mobile_number', $request->mobile_number)
-            ->whereNotNull('mobile_verified_at')
+        $user = User::where('email', $request->email)
+            ->whereNotNull('email_verified_at')
             ->first();
 
         $data = $request->validate([

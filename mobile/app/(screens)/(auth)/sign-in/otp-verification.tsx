@@ -13,11 +13,16 @@ import { useEffect } from "react";
 import { useOtpTimer } from "@/hooks/useOtpTimer";
 import { useAuth } from "@/contexts/auth-context";
 import { setToken } from "@/services/auth-storage";
+import { useLoader } from "@/hooks/useLoader";
+import { Info } from "lucide-react-native";
+import { Icon } from "@/components/ui/icon";
 
 export default function OtpVerification() {
   const { token_name, device_id, getUser } = useAuth();
-  const { mobile_number } = useLocalSearchParams();
-  const { remainingTime, canResend, startTimer, updateTimer } = useOtpTimer();
+  const { email } = useLocalSearchParams();
+  const { remainingTime, canResend, startTimer, updateTimer, resetTimer } =
+    useOtpTimer();
+  const { processing, setProcessing } = useLoader();
 
   const formSchema = z.object({
     otp: z.string().nonempty("The otp field is required."),
@@ -42,14 +47,18 @@ export default function OtpVerification() {
 
   const handleOtpVerification = useMutation({
     mutationFn: async (data: FormSchema) => {
+      setProcessing(true);
       const response = await axios.post("/sign-in/verify-otp", {
         ...data,
-        mobile_number,
+        email,
         token_name,
         device_id,
       });
       await setToken(response.data.token);
+    },
+    onSuccess: async () => {
       await getUser();
+      resetTimer();
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -61,6 +70,9 @@ export default function OtpVerification() {
           });
         });
       }
+    },
+    onSettled: () => {
+      setProcessing(false);
     },
   });
 
@@ -75,12 +87,6 @@ export default function OtpVerification() {
   }, [otp]);
 
   useEffect(() => {
-    if (canResend) {
-      startTimer();
-    }
-  }, [canResend]);
-
-  useEffect(() => {
     updateTimer();
 
     const interval = setInterval(() => {
@@ -90,18 +96,20 @@ export default function OtpVerification() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleResend = async () => {
-    if (!canResend) return;
-
-    try {
+  const handleResend = useMutation({
+    mutationFn: async () => {
+      setProcessing(true);
       await axios.post("/resend-otp", {
-        mobile_number
+        email,
       });
+    },
+    onSuccess: () => {
       startTimer();
-    } catch (error: any) {
-      console.log(error)
-    }
-  };
+    },
+    onSettled: () => {
+      setProcessing(false);
+    },
+  });
 
   return (
     <KeyboardAwareScrollView
@@ -125,39 +133,64 @@ export default function OtpVerification() {
               </Text>
               <Text className="text-sm text-muted-foreground font-quicksand-regular">
                 Please enter the one-time-password (OTP) that we sent to{" "}
-                <Text className="text-sm font-quicksand-medium">
-                  {mobile_number}
-                </Text>
+                <Text className="text-sm font-quicksand-medium">{email}</Text>
               </Text>
             </View>
             <Controller
               control={control}
               name="otp"
               render={({ field: { onChange, value } }) => (
-                <View className="gap-1">
-                  <OtpInput onChange={onChange} value={value} />
-                  {errors.otp && (
-                    <Text className="text-xs font-quicksand-medium text-destructive ml-3">
-                      {errors.otp.message}
-                    </Text>
-                  )}
-                </View>
+                <OtpInput
+                  onChange={onChange}
+                  value={value}
+                  error={errors.otp?.message}
+                />
               )}
             />
             <View className="items-center">
               {canResend ? (
-                <TouchableOpacity onPress={handleResend} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={() => handleResend.mutate()}
+                  activeOpacity={0.7}
+                  disabled={processing}
+                >
                   <Text className="font-quicksand-semibold text-primary">
                     Resend code
                   </Text>
                 </TouchableOpacity>
               ) : (
                 <Text className="font-quicksand-regular text-muted-foreground">
-                  {`Resend code in ${Math.floor(remainingTime / 60)}:${String(
-                    remainingTime % 60,
-                  ).padStart(2, "0")}`}
+                  {`Resend code in ${
+                    Math.floor(remainingTime / 60) > 0
+                      ? `${Math.floor(remainingTime / 60)} minute${Math.floor(remainingTime / 60) === 1 ? "" : "s"} `
+                      : ""
+                  }${remainingTime % 60} second${remainingTime % 60 <= 1 ? "" : "s"}`}
                 </Text>
               )}
+            </View>
+          </View>
+          <View className="border border-border p-4 rounded-3xl bg-primary-foreground">
+            <View className="flex-row gap-2">
+              <Icon
+                as={Info}
+                className="text-primary"
+                size={24}
+                strokeWidth={1.5}
+              />
+              <View className="flex-1">
+                <Text className="text-primary font-quicksand-medium text-sm">
+                  Kindly wait for at least{" "}
+                  <Text className="text-primary font-quicksand-bold text-sm">
+                    3 minutes
+                  </Text>{" "}
+                  for the{" "}
+                  <Text className="text-primary font-quicksand-bold text-sm">
+                    OTP
+                  </Text>{" "}
+                  to arrive. Sometimes, there may be delays in receiving it.
+                  Thank you for your patience.
+                </Text>
+              </View>
             </View>
           </View>
         </View>

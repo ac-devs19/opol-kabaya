@@ -13,8 +13,9 @@ import { useOtpTimer } from "@/hooks/useOtpTimer";
 import { router, useLocalSearchParams } from "expo-router";
 
 export default function OtpVerification() {
-  const { mobile_number } = useLocalSearchParams();
-  const { remainingTime, canResend, startTimer, updateTimer } = useOtpTimer();
+  const { email } = useLocalSearchParams();
+  const { remainingTime, canResend, startTimer, updateTimer, resetTimer } =
+    useOtpTimer();
 
   const formSchema = z.object({
     otp: z.string().nonempty("The otp field is required."),
@@ -41,9 +42,12 @@ export default function OtpVerification() {
     mutationFn: async (data: FormSchema) => {
       await axios.post("/forgot/verify-otp", {
         ...data,
-        mobile_number,
+        email,
       });
       router.push("/forgot/reset-pin");
+    },
+    onSuccess: () => {
+      resetTimer();
     },
     onError: (error: any) => {
       const errors = error.response.data.errors;
@@ -89,11 +93,11 @@ export default function OtpVerification() {
 
     try {
       await axios.post("/resend-otp", {
-        mobile_number
+        email,
       });
       startTimer();
     } catch (error: any) {
-      console.log(error)
+      console.log(error);
     }
   };
 
@@ -119,23 +123,18 @@ export default function OtpVerification() {
               </Text>
               <Text className="text-sm text-muted-foreground font-quicksand-regular">
                 Please enter the one-time-password (OTP) that we sent to{" "}
-                <Text className="text-sm font-quicksand-medium">
-                  {mobile_number}
-                </Text>
+                <Text className="text-sm font-quicksand-medium">{email}</Text>
               </Text>
             </View>
             <Controller
               control={control}
               name="otp"
               render={({ field: { onChange, value } }) => (
-                <View className="gap-1">
-                  <OtpInput onChange={onChange} value={value} />
-                  {errors.otp && (
-                    <Text className="text-xs font-quicksand-medium text-destructive ml-3">
-                      {errors.otp.message}
-                    </Text>
-                  )}
-                </View>
+                <OtpInput
+                  onChange={onChange}
+                  value={value}
+                  error={errors.otp?.message}
+                />
               )}
             />
             <View className="items-center">

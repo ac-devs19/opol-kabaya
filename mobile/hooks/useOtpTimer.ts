@@ -6,9 +6,9 @@ interface OtpTimerStore {
   resendUntil: number | null;
   remainingTime: number;
   canResend: boolean;
-
   startTimer: (seconds?: number) => void;
   updateTimer: () => void;
+  resetTimer: () => void;
 }
 
 export const useOtpTimer = create<OtpTimerStore>()(
@@ -47,6 +47,14 @@ export const useOtpTimer = create<OtpTimerStore>()(
         set({
           remainingTime: remaining,
           canResend: remaining <= 0,
+        });
+      },
+
+      resetTimer: () => {
+        set({
+          resendUntil: null,
+          remainingTime: 0,
+          canResend: true,
         });
       },
     }),

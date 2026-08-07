@@ -1,11 +1,10 @@
 import Input from "@/components/input";
 import { Text } from "@/components/ui/text";
-import { useTabBar } from "@/hooks/useTabBar";
+import { useTabBarScroll } from "@/hooks/useTabBarScroll";
 import { useAppColors } from "@/lib/theme";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { router } from "expo-router";
-import { useRef } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -16,21 +15,7 @@ import {
 
 export default function News() {
   const { primary } = useAppColors();
-  const setVisible = useTabBar((s) => s.setVisible);
-
-  const lastOffset = useRef(0);
-
-  const handleScroll = (event: any) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-
-    if (currentOffset > lastOffset.current + 10) {
-      setVisible(false);
-    } else if (currentOffset < lastOffset.current - 10) {
-      setVisible(true);
-    }
-
-    lastOffset.current = currentOffset;
-  };
+  const { handleScroll } = useTabBarScroll();
 
   const getNews = async ({ pageParam }: { pageParam: number }) => {
     const { data } = await axios.get("https://occ.edu.ph/api/mobile/news", {
